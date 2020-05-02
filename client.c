@@ -93,9 +93,10 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
         //printf("LLAMO DEDE AFUERA CON EL BUFF LOCAL %s\n", buff);
         memset(buff,0,sizeof(char)*(INITIAL_SIZE));
         if((line_bytes = client_save_in_buffer(buff, d_buf, file))< 0) return -1;
+        printf("size:%ld\n", size);
+        printf("strlen:%ld\n", d_buf->used);
         while(size < d_buf->used){
-            //printf("size:%ld\n", size);
-            //printf("strlen:%ld\n", d_buf->used);
+            
             size_t line_size = strlen(d_buf->data +size);
             char line[line_size];
             memset(line,0,sizeof(char)*(line_size));
@@ -117,6 +118,14 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
         //    perror("Error when send");
         //    return -1;
         //}     
+    }
+    if (size < d_buf->used){
+        size_t line_size = strlen(d_buf->data +size);
+        char line[line_size];
+        memset(line,0,sizeof(char)*(line_size));
+        memcpy(line,d_buf->data+size,line_size );
+        printf("afuera while %s is this\n", line);
+        size += strlen(line)+ 1;
     }
     //printf("buffer dinamico: %s\n", d_buf->data);
     return 0;
