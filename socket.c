@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 201112L
 #include "socket.h"
+#include "error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,19 +16,6 @@ void socket_settings(struct addrinfo* hints){
     hints->ai_socktype= SOCK_STREAM;
     hints->ai_flags = 0;
     hints->ai_protocol= 6;
-}
-
-int throw_error(char* msj){
-    perror(msj);
-    exit (-1);
-}
-
-int throw_sterr( char* msj, const char* param ){
-    printf("aca throw");
-    if (param) fprintf(stderr, "%s\n", param);
-    else fprintf(stderr,"%s", msj);
-    exit (-1);
-   
 }
 
 int socket_create(socket_t* self){

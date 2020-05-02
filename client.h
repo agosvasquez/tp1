@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 #include "socket.h"
+#include "buffer.h"
 #include <stdio.h>
 
 typedef struct client_t {
@@ -17,6 +18,6 @@ int client_destroy(client_t* self);
 int client_run(client_t* self, const char* host, const char* service, FILE* file);
 
 //Envia el mensaje codificiado con el protocolo d-bus
-int client_send_encode(client_t* self, char* buff, char** d_buff, FILE* file);
+int client_send_encode(client_t* self, char* buff, buffer_t* d_buff, FILE* file);
 
 #endif
