@@ -17,6 +17,6 @@ int client_destroy(client_t* self);
 int client_run(client_t* self, const char* host, const char* service, FILE* file);
 
 //Envia el mensaje codificiado con el protocolo d-bus
-int client_send_encode(client_t* self, char* buff, FILE* file);
+int client_send_encode(client_t* self, char* buff, char** d_buff, FILE* file);
 
 #endif
