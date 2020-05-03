@@ -3,6 +3,7 @@
 #include "client.h"
 #include "parser.h"
 #include "buffer.h"
+#include "error.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,20 +43,33 @@ int client_run(client_t* self, const char* host, const char* service, FILE* file
 
 
 int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
-    dbus_encode_t encoded;
+    encode_t encoded;
     int bytes, line_bytes;
     encoded_create(&encoded);
     buffer_create(d_buf);
     while(1){
         char* line = NULL;
-        printf("antes de llamar\n");
+        printf("encode buffer used %ld\n", (&encoded)->bytes->used);
         buffer_get_line(d_buf,buff,&line,file);
-        printf(" AFUERA: %s", line);
+        printf("line %s", line);
+        encode_line(&encoded,line);
+        //bytes = socket_send(self->socket, (&encoded)->bytes,(&encoded)->size);
+        //printf("Encoded: %s\n", bytes);
+        uint8_t * hexa = (uint8_t*)(&encoded)->bytes->data;
+        int i;
+        for (i = 0; i < (&encoded)->bytes->used; i++){
+            if (i > 0) printf(":");
+            printf("%02X", hexa[i]);
+        }
+        printf("\n");
+        //if(bytes < 0) throw_error("error en el send"); 
         free(line);
         //pregunto si se leyo todo
         if(d_buf->read == d_buf->used) break;
+
     }
-    printf("fin\n");
+    //socket_receive(self->socket,buf_recive,sizeof(buf_recive)); 
+    //printf("Respuesta service: %s\n",buf_recive);
     buffer_destroyed(d_buf);
     return 0;
 }

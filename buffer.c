@@ -2,6 +2,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 const int INITIAL_BUFF_SIZE = 32;
 const int INCREASE_FACTOR = 2;
@@ -13,12 +14,23 @@ int buffer_create(buffer_t* buffer){
     buffer->capacity= INITIAL_BUFF_SIZE+1;
     buffer->used=0;
     buffer->read=0;
+    return 0;
+}
+
+int buffer_create_size(buffer_t* buffer, int size){
+    buffer->data = malloc(size * sizeof(char));
+    if (!buffer->data) throw_error("malloc error");
+    memset(buffer->data, 0, sizeof(char)* (INITIAL_BUFF_SIZE));
+    buffer->capacity= INITIAL_BUFF_SIZE+1;
+    buffer->used=0;
+    buffer->read=0;
     printf("todo ok create\n");
     return 0;
 }
 
 void buffer_destroyed(buffer_t* buffer){
     free(buffer->data);
+    buffer->data = NULL;
 }
 
 
@@ -27,7 +39,7 @@ int buffer_is_finished_line(char * line){
     for (size_t pos = 0; pos < length; pos++){
         if (line[pos] == '\n' || line[pos] == '\0'){
             printf("entcontre final fin de la iteracion\n");
-            printf("line in pos: %c\n", line[pos]);
+            //printf("line in pos: %c\n", line[pos]);
             return pos;
         }
         printf("line in pos: %c\n", line[pos]);
@@ -39,6 +51,8 @@ int buffer_is_finished_line(char * line){
 int buffer_realloc(buffer_t* buffer){
     size_t new_tam= buffer->capacity * INCREASE_FACTOR;
     //printf("buffer: %s\n", buffer->data);
+    //printf("buffer cap: %ld\n", buffer->capacity);
+    //printf("buffer strlen: %ld\n", strlen(buffer->data));
     char *aux = (char*)realloc(buffer->data, new_tam);
     if (!aux) throw_error("realloc error\n");
     buffer->data = aux;
@@ -47,9 +61,12 @@ int buffer_realloc(buffer_t* buffer){
 }
 
 int buffer_save_data(buffer_t* buffer, char* data, int size){
-    //printf("data:%ld \n", strlen(data));
-    if (buffer->capacity <= buffer->used + strlen(data)){
-        //printf("REALLOC\n");
+    //printf("buffer capacity %ld\n", buffer->capacity);
+    //printf("data size:%d \n", size);
+    //printf("strlen data:%ld\n", strlen(data));
+    //printf("buffer used %ld\n", buffer->used);
+    if (buffer->capacity <= buffer->used + size){
+        printf("REALLOC\n");
         buffer_realloc(buffer);
     }
     //printf("memcpy save\n");
@@ -62,10 +79,10 @@ int buffer_save_data(buffer_t* buffer, char* data, int size){
     //printf("buffer data %s\n", buffer->data);
     //printf("buffer used %ld\n", buffer->used);
     //printf("buffer capacity %ld\n", buffer->capacity);
-    buffer->used += strlen(data);
+    buffer->used += size;
     //printf("saliendo de save\n");
     //printf("data:%ld \n", strlen(data));
-    //printf("buffer used %ld\n", buffer->used);
+    //printf("buffer despues de actualiar used %ld\n", buffer->used);
     return 0;
 }
 
@@ -75,17 +92,19 @@ int buffer_set_final_char(buffer_t* buffer, int pos){
 }
 
 int _get_line(char * buff, char* copy){
-    //printf("buffer que me llega:%s", buff);
-    size_t pos_final = buffer_is_finished_line(buff);
-    printf("tengo la pos: %ld\n", pos_final);
-    if (pos_final <0) return -1;
+    printf("buffer que me llega:%s\n", buff);
+    int pos_final = buffer_is_finished_line(buff);
+    printf("termino la linea?: %d \n ", pos_final < 0);
+    printf("tengo la pos: %d\n", pos_final);
+    
+    if (pos_final < 0) return -1;
+    
     // +1 porque en pos se cuentan desde 0 osea
     // que para contar memoria es mas 1
     memcpy(copy, buff, pos_final+1);
     //printf("after memcpy\n");
     /* add a final null terminator */
     size_t final= strlen(copy);
-    //printf("final %ld\n", final);
     memcpy(copy + final , "\0", 1);
     printf("line: %s\n", copy);
     //if (buffer_is_finished_line(copy) > 0) printf("SIII\n");
@@ -94,7 +113,7 @@ int _get_line(char * buff, char* copy){
 }
 
 // devuelve la cantidad de caracteres que tiene la linea que guardo
-int buffer_save(buffer_t* d_buff,char* buff, FILE* file){
+int buffer_save_from_file(buffer_t* d_buff,char* buff, FILE* file){
     //printf("LO QUE ESTA GUAR %s\n", d_buff->data);
     //printf("JEEE\n");
     //printf("buff antes while %s\n", buff);
@@ -115,7 +134,7 @@ int buffer_save(buffer_t* d_buff,char* buff, FILE* file){
             memset(aux,0,sizeof(char)*(INITIAL_BUFF_SIZE));
             memcpy(aux, buff, strlen(buff)-1);
             //printf("aux:%s", aux);
-            buffer_save_data(d_buff,aux,strlen(buff));
+            buffer_save_data(d_buff,aux,strlen(aux));
             //printf("d_buff final size %ld\n", d_buff->used);
             //printf("que verga rompe\n");
             break;
@@ -123,7 +142,7 @@ int buffer_save(buffer_t* d_buff,char* buff, FILE* file){
         //printf("guardo\n");
         //printf("leido %s\n", buff);
         //printf("leido %ld\n", strlen(buff));
-        buffer_save_data(d_buff,buff,INITIAL_BUFF_SIZE);
+        buffer_save_data(d_buff,buff,strlen(buff));
         //printf("Guardado %s\n", d_buff->data);
         //printf("d_buff size %ld\n", d_buff->used);
         //printf("saliendo\n");
@@ -136,14 +155,12 @@ int buffer_save(buffer_t* d_buff,char* buff, FILE* file){
     return strlen(buff);
 }
 
-
-
 int buffer_get_line(buffer_t* d_buf, char* buff, char** line, FILE* file){
     size_t line_bytes=0;
     while(1){
         memset(buff,0,sizeof(char)*(INITIAL_BUFF_SIZE));
         if(!feof(file))
-            if((line_bytes = buffer_save(d_buf,buff, file))< 0) return -1;
+            if((line_bytes = buffer_save_from_file(d_buf,buff, file))< 0) return -1;
         while(d_buf->read < d_buf->used){
             //size_t line_size=INITIAL_BUFF_SIZE;
             //mas 1 para guardar el '/0'
@@ -157,19 +174,7 @@ int buffer_get_line(buffer_t* d_buf, char* buff, char** line, FILE* file){
             //printf("lineee %s\n", *line);
             return 1;
         }
-        //memset(buff,0,sizeof(char)*(INITIAL_BUFF_SIZE));
-        //if((line_bytes = buffer_save(d_buf,buff, file))< 0) return -1;
-
-        if(line_bytes < INITIAL_BUFF_SIZE-1) {
-            break;
-        }
-        
-        //encode_file(&encoded,d_buf, line_bytes);
-        //bytes = socket_send(self->socket, (&encoded)->bytes,(&encoded)->size);
-        //if(bytes < 0){
-        //    perror("Error when send");
-        //    return -1;
-        //}     
+        if(line_bytes < INITIAL_BUFF_SIZE-1) break;
     }
     if (d_buf->read < d_buf->used){
         size_t line_size = strlen(d_buf->data + d_buf->read);

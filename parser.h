@@ -1,11 +1,14 @@
 #ifndef PARSER_H
 #define PARSER_H
 #include <stddef.h>
+#include <stdint.h>
+#include "buffer.h"
 
-typedef struct dbus_encode_t{
-    char* bytes;
-    size_t size;
-} dbus_encode_t;
+typedef struct encode_t{
+    buffer_t* bytes;
+    uint32_t msj_id;
+    //size_t size;
+} encode_t;
 
 typedef struct dbus_decode_t{
     char* bytes;
@@ -14,14 +17,18 @@ typedef struct dbus_decode_t{
 } dbus_decode_t;
 
 // encode a file into dbus protocol
-int encode_file(dbus_encode_t * encode, char* buff, size_t lenght);
+int encode_line(encode_t * encode, char* buff);
 
 // decode a uint8 
 //int decode_file(dbus_decode_t * decode, uint8_t* buff);
 
-int encoded_create(dbus_encode_t* encode);
+int encoded_create(encode_t* encode);
 
-int encoded_destoyed(dbus_encode_t* encoded);
+void encoded_destoyed(encode_t* encoded);
+
+void encode_set_static(encode_t* encode);
+
+int encode_arg(encode_t* encode, char* arg, uint8_t* t_p, uint16_t* t_d);
 
 int decoded_create(dbus_decode_t* decode);
 
