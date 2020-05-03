@@ -85,7 +85,7 @@ int _get_line(char * buff, char* copy){
     //printf("after memcpy\n");
     /* add a final null terminator */
     size_t final= strlen(copy);
-    printf("final %ld", final);
+    //printf("final %ld\n", final);
     memcpy(copy + final , "\0", 1);
     printf("line: %s\n", copy);
     //if (buffer_is_finished_line(copy) > 0) printf("SIII\n");
@@ -145,9 +145,9 @@ int buffer_get_line(buffer_t* d_buf, char* buff, char** line, FILE* file){
         if(!feof(file))
             if((line_bytes = buffer_save(d_buf,buff, file))< 0) return -1;
         while(d_buf->read < d_buf->used){
-            size_t line_size=INITIAL_BUFF_SIZE;
+            //size_t line_size=INITIAL_BUFF_SIZE;
             //mas 1 para guardar el '/0'
-            if(d_buf->read > 0) line_size = strlen(d_buf->data + d_buf->read)+1;
+            size_t line_size = strlen(d_buf->data + d_buf->read)+1;
             *line= malloc(sizeof(char)* line_size);
             memset(*line,0,sizeof(char)*(line_size));
             printf("corrido :%s\n", d_buf->data+d_buf->read);
