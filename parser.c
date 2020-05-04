@@ -87,8 +87,9 @@ int encode_line(encode_t * encode, char* data){
 
 int encode_convert_multiple( char* arg, char** arg_pad, int size_arg_pad, size_t size){
     printf("size_arg_pad: %d\n", size_arg_pad);
-    *arg_pad = malloc(sizeof(char)* size_arg_pad);
-    memset(*arg_pad, 0, sizeof(char)*size_arg_pad);
+    //un lugar mas para guardar
+    *arg_pad = malloc(sizeof(char)* size_arg_pad+1);
+    memset(*arg_pad, 0, sizeof(char)*size_arg_pad+1);
     memcpy(*arg_pad,arg,size);
     //printf("arg_pad : %s\n", *arg_pad);
     //printf("arg_pad %s", arg_pad);
@@ -134,7 +135,7 @@ int encode_arg(encode_t* encode, char* arg, uint8_t* t_p, uint16_t* t_d){
     uint32_t swap_size_par = to_little_32((uint32_t)size_param);
     //para poder 
     int padd = number_padd(size_param+ SIZE_END, 8);
-    int size_arg_pad= size_param + padd;
+    int size_arg_pad= size_param + SIZE_END + padd;
     encode_convert_multiple(arg,&arg_pad, size_arg_pad, strlen(arg));
     uint8_t stat = 0x01;
    
