@@ -18,12 +18,12 @@ int main(int argc, char *argv[]){
         input = stdin;
     }
 
-    //client_create(&client);
+    client_create(&client);
     client_run(&client,host,port, input);
 
     if (input != stdin) fclose(input);
     
-    //client_destroy(&client);
+    client_destroy(&client);
 
     return 0;
 }

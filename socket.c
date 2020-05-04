@@ -91,7 +91,7 @@ int socket_send(socket_t* self, char* buffer , size_t length){
     int sum_bytes = 0;
     int bytes =0;
     while(sum_bytes != length){
-        if ((bytes = send(self->socket,buffer,length,MSG_NOSIGNAL))<0) throw_error("send failed");
+        if ((bytes = send(self->socket,buffer+sum_bytes,length,MSG_NOSIGNAL))<0) throw_error("send failed");
         sum_bytes += bytes;
     }
     printf("Enviado %d bytes\n", sum_bytes);
@@ -102,7 +102,9 @@ int socket_receive(socket_t* self, char* buffer, size_t legth){
     int sum_bytes = 0;
     int bytes = 0;
     while(sum_bytes != legth){
-        if ((bytes = recv(self->socket, buffer, legth,0)) <0) throw_error("send failed");
+        if ((bytes = recv(self->socket, buffer+sum_bytes, legth,0)) <0) throw_error("send failed");
+        // client closed
+        if (bytes == 0) return 0;
         sum_bytes += bytes;
     }
     printf("Recibido %d bytes\n", sum_bytes);

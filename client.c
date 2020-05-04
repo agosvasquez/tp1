@@ -12,14 +12,16 @@ const int INITIAL_SIZE = 32;
 //const int INCREASE_FACTOR = 2;
 
 int client_create(client_t* self){
-    socket_t socket;
-    socket_create(&socket);
-    self->socket = &socket;
+    socket_t* socket = malloc(sizeof(socket_t));
+    socket_create(socket);
+    self->socket = socket;
     return 0;
 }
 
 int client_destroy(client_t* self){
-    socket_shutdown(self->socket,2);
+    socket_shutdown(self->socket,SHUT_RDWR);
+    socket_destroy(self->socket);
+    free(self->socket);
     return 0;
 }
 
@@ -29,7 +31,7 @@ int client_run(client_t* self, const char* host, const char* service, FILE* file
     char buf_recive[3];
 
     //printf("Holee\n");
-    //socket_connect(self->socket,host,service);
+    socket_connect(self->socket,host,service);
     int bytes = client_send_encode(self, buff,&dinamic_buff, file);
     //mirar si no necesita un while
     //solo para prueba
@@ -54,11 +56,6 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
         buffer_get_line(d_buf,buff,&line,file);
         printf("line %s", line);
         encode_line(&encoded,line);
-        //bytes = socket_send(self->socket, (&encoded)->bytes->data, (&encoded)->bytes->used);
-        //printf("Bytes enviados: %d\n", bytes);
-        //socket_receive(self->socket,buf_recive,sizeof(buf_recive)); 
-        //printf("Respuesta service: %s\n",buf_recive);
-        //printf("Encoded: %s\n", bytes);
         uint8_t * hexa = (uint8_t*)(&encoded)->bytes->data;
         int i;
         for (i = 0; i < (&encoded)->bytes->used; i++){
@@ -66,7 +63,11 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
             printf("%02X", hexa[i]);
         }
         printf("\n");
-        //if(bytes < 0) throw_error("error en el send"); 
+        bytes = socket_send(self->socket, (&encoded)->bytes->data, (&encoded)->bytes->used);
+        printf("Bytes enviados: %d\n", bytes);
+        socket_receive(self->socket,buf_recive,sizeof(buf_recive)); 
+        printf("Respuesta service: %s\n",buf_recive);
+        if(bytes < 0) throw_error("error en el send"); 
         free(line);
         encoded_destoyed(&encoded);
         //pregunto si se leyo todo
