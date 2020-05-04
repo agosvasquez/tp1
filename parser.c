@@ -15,6 +15,7 @@ uint8_t END = 0x00;
 size_t POS_BODY_SIZE= 4;
 size_t POS_ARR_SIZE= 12;
 size_t POS_START_ARR =16;
+int SIZE_END = 1;
 
 int INIT_ENCODED_BUFF_SIZE = 32;
 
@@ -85,8 +86,6 @@ int encode_line(encode_t * encode, char* data){
 
 
 int encode_convert_multiple( char* arg, char** arg_pad, int size_arg_pad, size_t size){
-    //printf("padd: %d\n", padd);
-    //uno por el caracter nulo
     printf("size_arg_pad: %d\n", size_arg_pad);
     *arg_pad = malloc(sizeof(char)* size_arg_pad);
     memset(*arg_pad, 0, sizeof(char)*size_arg_pad);
@@ -94,8 +93,9 @@ int encode_convert_multiple( char* arg, char** arg_pad, int size_arg_pad, size_t
     //printf("arg_pad : %s\n", *arg_pad);
     //printf("arg_pad %s", arg_pad);
     memcpy(*arg_pad + size , "\0", 1);
-    int padd = size_arg_pad - size -1;
-    for (size_t i = 0; i < padd; i++){
+    int padd = size_arg_pad - size ;
+    //printf("pad %d\n", padd);
+    for (size_t i = 0; i <= padd && padd >0 ; i++){
         memcpy(*arg_pad + size+1 ,(char*)&END, sizeof(uint8_t));
     }
     return 0;
@@ -132,8 +132,8 @@ int encode_arg(encode_t* encode, char* arg, uint8_t* t_p, uint16_t* t_d){
     char* arg_pad = NULL;
     size_t size_param = strlen(arg);
     uint32_t swap_size_par = to_little_32((uint32_t)size_param);
-    //para poder hacer menor directo
-    int padd = number_padd(size_param+1, 8) +1;
+    //para poder 
+    int padd = number_padd(size_param+ SIZE_END, 8);
     int size_arg_pad= size_param + padd;
     encode_convert_multiple(arg,&arg_pad, size_arg_pad, strlen(arg));
     uint8_t stat = 0x01;
@@ -166,16 +166,10 @@ int encode_firm(encode_t* encode, int* cant_par){
         memcpy(aux+4+i, (char*)&s, sizeof(uint8_t));
     }
     char* arg_pad = NULL;
-    printf("size_param %ld\n",size_param);
-    printf("size_param %ld\n",sizeof(aux));
-    int padd = number_padd(size_param+1, 8) +1;
-    int size_arg_pad= size_param  + padd;
+    int padd = number_padd(size_param+ SIZE_END, 8);
+    int size_arg_pad= size_param + SIZE_END + padd ;
     encode_convert_multiple(aux,&arg_pad, size_arg_pad,size_param );
-     for (int i = 0; i < *cant_par+5; i++){
-        if (i > 0) printf(":");
-        printf("%02X", arg_pad[i]);
-    }
-    printf("\n");
+
     buffer_save_data(encode->bytes,arg_pad, size_arg_pad);
     free(arg_pad);
     //for end of string
