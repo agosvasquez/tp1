@@ -65,7 +65,7 @@ int buffer_save_data(buffer_t* buffer, char* data, int size){
     //printf("data size:%d \n", size);
     //printf("strlen data:%ld\n", strlen(data));
     //printf("buffer used %ld\n", buffer->used);
-    if (buffer->capacity <= buffer->used + size){
+     if (buffer->capacity <= buffer->used + size){
         printf("REALLOC\n");
         buffer_realloc(buffer);
     }

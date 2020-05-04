@@ -29,7 +29,7 @@ int client_run(client_t* self, const char* host, const char* service, FILE* file
     char buf_recive[3];
 
     //printf("Holee\n");
-    // socket_connect(self->socket,host,service);
+    //socket_connect(self->socket,host,service);
     int bytes = client_send_encode(self, buff,&dinamic_buff, file);
     //mirar si no necesita un while
     //solo para prueba
@@ -45,15 +45,19 @@ int client_run(client_t* self, const char* host, const char* service, FILE* file
 int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
     encode_t encoded;
     int bytes, line_bytes;
-    encoded_create(&encoded);
+    char buf_recive[3];
     buffer_create(d_buf);
     while(1){
+        encoded_create(&encoded);
         char* line = NULL;
         printf("encode buffer used %ld\n", (&encoded)->bytes->used);
         buffer_get_line(d_buf,buff,&line,file);
         printf("line %s", line);
         encode_line(&encoded,line);
-        //bytes = socket_send(self->socket, (&encoded)->bytes,(&encoded)->size);
+        //bytes = socket_send(self->socket, (&encoded)->bytes->data, (&encoded)->bytes->used);
+        //printf("Bytes enviados: %d\n", bytes);
+        //socket_receive(self->socket,buf_recive,sizeof(buf_recive)); 
+        //printf("Respuesta service: %s\n",buf_recive);
         //printf("Encoded: %s\n", bytes);
         uint8_t * hexa = (uint8_t*)(&encoded)->bytes->data;
         int i;
@@ -64,6 +68,7 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
         printf("\n");
         //if(bytes < 0) throw_error("error en el send"); 
         free(line);
+        encoded_destoyed(&encoded);
         //pregunto si se leyo todo
         if(d_buf->read == d_buf->used) break;
 

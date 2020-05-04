@@ -7,13 +7,13 @@
 typedef struct encode_t{
     buffer_t* bytes;
     uint32_t msj_id;
-    //size_t size;
+    size_t count_pad;
 } encode_t;
 
 typedef struct dbus_decode_t{
     char* bytes;
     char* str;
-    size_t size;
+    size_t size_pad;
 } dbus_decode_t;
 
 // encode a file into dbus protocol
@@ -33,5 +33,11 @@ int encode_arg(encode_t* encode, char* arg, uint8_t* t_p, uint16_t* t_d);
 int decoded_create(dbus_decode_t* decode);
 
 int decoded_destroyed(dbus_decode_t* decode);
+
+int encode_convert_multiple( char* arg, char** arg_pad, int size_arg_pad, size_t size);
+
+int encode_firm(encode_t* encode, int* cant_par);
+
+int encode_params_firm( encode_t* encode,char* firm);
 
 #endif
