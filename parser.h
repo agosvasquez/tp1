@@ -40,4 +40,8 @@ int encode_firm(encode_t* encode, int* cant_par);
 
 int encode_params_firm( encode_t* encode,char* firm);
 
+uint16_t to_little_16( uint16_t x);
+
+uint32_t to_little_32( uint32_t x);
+
 #endif

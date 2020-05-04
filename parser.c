@@ -4,6 +4,8 @@
 #include "buffer.h"
 #include "error.h"
 #include <byteswap.h>
+#include <netinet/in.h>
+
 
 uint8_t type_prot_des =  0x06;
 uint8_t type_prot_path =  0x01;
@@ -20,7 +22,8 @@ int encoded_create(encode_t* encode){
     buffer_t* buff = malloc(sizeof(buffer_t));
     buffer_create(buff);
     encode->bytes = buff;
-    encode->msj_id = bswap_32(0x0001);
+    encode->msj_id = to_little_32(0x0001);
+    printf("EL ID ES %02X\n", encode->msj_id);
     encode->count_pad=0;
     return 0;
 }
@@ -32,7 +35,7 @@ void encoded_destoyed(encode_t* encoded){
 }
 
 void encoded_increment_id(encode_t* encoded){
-    encoded->msj_id += bswap_32(0x0001);
+    encoded->msj_id += to_little_32(0x0001);
 }
 
 int decoded_create(dbus_decode_t* decode){
@@ -51,10 +54,9 @@ int number_padd(int size, int mult){
 
 
 int encode_line(encode_t * encode, char* data){
-    uint16_t S = bswap_16(0x73);
-    uint16_t O = bswap_16(0x6F);
-    int padd =0;
-
+    uint16_t S = to_little_16(0x73);
+    uint16_t O = to_little_16(0x6F);
+    
     encode_set_static(encode);
     char * dest = strtok(data, " ");
     if (!dest) throw_error("destination not found");
@@ -73,17 +75,16 @@ int encode_line(encode_t * encode, char* data){
     char* firm = data+ s_firm;
     printf("firma: %s\n", firm);
     int long_param = encode_params_firm(encode,firm);
-    uint32_t swap_long_par= bswap_32(long_param);
+    uint32_t swap_long_par= to_little_32(long_param);
     memcpy(encode->bytes->data + POS_BODY_SIZE, (char*)&swap_long_par, sizeof(uint32_t));
     int long_arr = encode->bytes->used - POS_START_ARR - encode->count_pad;
-    uint32_t swap_long_ar= bswap_32(long_arr);
+    uint32_t swap_long_ar= to_little_32(long_arr);
     memcpy(encode->bytes->data + POS_ARR_SIZE,(char*)&swap_long_ar, sizeof(uint32_t));
     return 0;  
 }
 
 
 int encode_convert_multiple( char* arg, char** arg_pad, int size_arg_pad, size_t size){
-    uint8_t save = 0x00;
     //printf("padd: %d\n", padd);
     //uno por el caracter nulo
     printf("size_arg_pad: %d\n", size_arg_pad);
@@ -95,7 +96,7 @@ int encode_convert_multiple( char* arg, char** arg_pad, int size_arg_pad, size_t
     memcpy(*arg_pad + size , "\0", 1);
     int padd = size_arg_pad - size -1;
     for (size_t i = 0; i < padd; i++){
-        memcpy(*arg_pad + size+1 ,(char*)&save, sizeof(uint8_t));
+        memcpy(*arg_pad + size+1 ,(char*)&END, sizeof(uint8_t));
     }
     return 0;
 }
@@ -105,10 +106,9 @@ void actualize_count_pad(encode_t* encode,  int pad){
 }
 
 void encode_set_static(encode_t* encode){
-    //buffer_t* encode->bytes = encode->bytes;
     uint8_t type = 0x01;
     uint8_t flags = 0x00;
-    uint32_t len= bswap_32(0x0000);// dejo el lugar guardado porque todavia no se
+    uint32_t len= to_little_32(0x0000);// dejo el lugar guardado porque todavia no se
     //agregarle a todo Hton
     printf("guardo l\n");
     printf("encode buffer used %ld\n", encode->bytes->used);
@@ -131,7 +131,7 @@ void encode_set_static(encode_t* encode){
 int encode_arg(encode_t* encode, char* arg, uint8_t* t_p, uint16_t* t_d){
     char* arg_pad = NULL;
     size_t size_param = strlen(arg);
-    uint32_t swap_size_par = bswap_32((uint32_t)size_param);
+    uint32_t swap_size_par = to_little_32((uint32_t)size_param);
     //para poder hacer menor directo
     int padd = number_padd(size_param+1, 8) +1;
     int size_arg_pad= size_param + padd;
@@ -153,7 +153,7 @@ int encode_firm(encode_t* encode, int* cant_par){
     uint8_t t_p = 0x09;
     uint8_t stat = 0x01;
     uint8_t s = 0x73;
-    uint16_t G = bswap_16(0x67);
+    uint16_t G = to_little_16(0x67);
     size_t size_param = *cant_par +5 ;
 
     char aux[size_param];
@@ -200,4 +200,16 @@ int encode_params_firm( encode_t* encode,char* firm){
         encode_firm(encode, &counter_par);
     } 
     return long_param;
+}
+
+
+uint16_t to_little_16( uint16_t x){
+    uint16_t to_net =htons(x);
+    return bswap_16(to_net);
+}
+
+
+uint32_t to_little_32( uint32_t x){
+    uint32_t to_net =htonl(x);
+    return bswap_32(to_net);
 }
