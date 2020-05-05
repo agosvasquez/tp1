@@ -1,11 +1,10 @@
 #define _POSIX_C_SOURCE 201112L
-#include "socket.h"
-#include "error.h"
+#include "common_socket.h"
+#include "common_error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <netinet/in.h>
-#include <netdb.h>
 #include <string.h>
 
 const int QUQUE_LEN_LISTEN = 10;
@@ -40,15 +39,20 @@ int socket_bind_and_listen(socket_t* self, const char* service){
     
     socket_settings(&hints); 
      printf("hola\n"); 
-    if((s = getaddrinfo(NULL,service, &hints, &res)) != 0) throw_sterr("getaddrinfo:", gai_strerror(s));
+    if ((s = getaddrinfo(NULL,service, &hints, &res)) != 0) 
+        throw_sterr("getaddrinfo:", gai_strerror(s));
     
-    if ((sfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol))< 0) throw_error("create socket");
+    if ((sfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol))< 0) 
+        throw_error("create socket");
 
-    if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) throw_error("setsockop error");
+    if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) 
+        throw_error("setsockop error");
 
-    if (bind(sfd, res->ai_addr, res->ai_addrlen) < 0) throw_error("Bind error");
+    if (bind(sfd, res->ai_addr, res->ai_addrlen) < 0) 
+        throw_error("Bind error");
 
-    if (listen(sfd, QUQUE_LEN_LISTEN) < 0) throw_error("Listen error");
+    if (listen(sfd, QUQUE_LEN_LISTEN) < 0) 
+        throw_error("Listen error");
     
     freeaddrinfo(res);
     self->socket = sfd; 
@@ -59,7 +63,7 @@ int socket_accept(socket_t* self, socket_t* accepted_socket){
     struct sockaddr peer_addr;
     socklen_t addrlen = sizeof(peer_addr);
 
-    int s = accept(self->socket, &peer_addr,&addrlen );
+    int s = accept(self->socket, &peer_addr,&addrlen);
     if (s < 0) throw_error("Not accepted connection");
     accepted_socket->socket = s;
     return 0;
@@ -71,7 +75,8 @@ int socket_connect(socket_t* self, const char* host_name, const char* service){
 
     socket_settings(&hints);
 
-    if ((s = getaddrinfo(host_name, service, &hints,&res)) !=0) throw_sterr("getaddr:", gai_strerror(s));
+    if ((s = getaddrinfo(host_name, service, &hints,&res)) !=0) 
+        throw_sterr("getaddr:", gai_strerror(s));
     for (r = res; r != NULL; r = r->ai_next) {
         socket_fd = socket(r->ai_family, r->ai_socktype,r->ai_protocol);
         if (socket_fd == -1) continue;
@@ -87,28 +92,30 @@ int socket_connect(socket_t* self, const char* host_name, const char* service){
     return 0;
 }
 
-int socket_send(socket_t* self, char* buffer , size_t length){
-    int sum_bytes = 0;
+int socket_send(socket_t* self, char* buff , size_t length){
+    int sum_b = 0;
     int bytes =0;
-    while(sum_bytes != length){
-        if ((bytes = send(self->socket,buffer+sum_bytes,length,MSG_NOSIGNAL))<0) throw_error("send failed");
-        sum_bytes += bytes;
+    while (sum_b != length){
+        if ((bytes = send(self->socket,buff+sum_b,length,MSG_NOSIGNAL))<0) 
+            throw_error("send failed");
+        sum_b += bytes;
     }
-    printf("Enviado %d bytes\n", sum_bytes);
-    return sum_bytes;
+    printf("Enviado %d bytes\n", sum_b);
+    return sum_b;
 }
 
-int socket_receive(socket_t* self, char* buffer, size_t legth){
-    int sum_bytes = 0;
+int socket_receive(socket_t* self, char* buff, size_t legth){
+    int sum_b = 0;
     int bytes = 0;
-    while(sum_bytes != legth){
-        if ((bytes = recv(self->socket, buffer+sum_bytes, legth,0)) <0) throw_error("send failed");
+    while (sum_b != legth){
+        if ((bytes = recv(self->socket, buff+sum_b, legth,0)) <0) 
+            throw_error("send failed");
         // client closed
         if (bytes == 0) return 0;
-        sum_bytes += bytes;
+        sum_b += bytes;
     }
-    printf("Recibido %d bytes\n", sum_bytes);
-    return sum_bytes;
+    printf("Recibido %d bytes\n", sum_b);
+    return sum_b;
 }
 
 

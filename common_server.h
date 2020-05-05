@@ -1,8 +1,6 @@
 #ifndef SERVER_H
 #define SERVER_H
-#include "socket.h"
-#include "client.h"
-#include "parser.h"
+#include "common_client.h"
 
 typedef struct server_t{
     socket_t* socket;

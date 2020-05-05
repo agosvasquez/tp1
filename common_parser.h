@@ -1,8 +1,8 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef COMMON_PARSER_H
+#define COMMON_PARSER_H
 #include <stddef.h>
 #include <stdint.h>
-#include "buffer.h"
+#include "common_buffer.h"
 
 typedef struct encode_t{
     buffer_t* bytes;
@@ -39,15 +39,15 @@ int decoded_create(decode_t* decode);
 
 void decoded_destroyed(decode_t* decode);
 
-int encode_convert_multiple( char* arg, char** arg_pad, int size_arg_pad, size_t size);
+int encode_convert_multiple(char* arg, char** arg_pad,int s_arg_p,size_t size);
 
 int encode_firm(encode_t* encode, int* cant_par);
 
-int encode_params_firm( encode_t* encode,char* firm);
+int encode_params_firm(encode_t* encode,char* firm);
 
-uint16_t to_little_16( uint16_t x);
+uint16_t to_little_16(uint16_t x);
 
-uint32_t to_little_32( uint32_t x);
+uint32_t to_little_32(uint32_t x);
 
 int encode_extract_size(char* buff, int pos);
 
@@ -65,7 +65,7 @@ int decode_meth_param(decode_t* decode, buffer_t* buff);
 
 int size_param(decode_t* decode, buffer_t* buff);
 
-int decode_fill_par(char** param_fill,  buffer_t* buff , int size );
+int decode_fill_par(char** param_fill,  buffer_t* buff , int size);
 
 int decode_dest_param(decode_t* decode, buffer_t* buff);
 
