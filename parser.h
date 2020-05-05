@@ -65,12 +65,16 @@ int decode_meth_param(decode_t* decode, buffer_t* buff);
 
 int size_param(decode_t* decode, buffer_t* buff);
 
-int decode_fill_dest(char* param_fill,  buffer_t* buff , int size );
+int decode_fill_par(char** param_fill,  buffer_t* buff , int size );
 
 int decode_dest_param(decode_t* decode, buffer_t* buff);
 
 int decode_path_param(decode_t* decode, buffer_t* buff);
 
 int decode_inter_param(decode_t* decode, buffer_t* buff);
+
+void decoded_output(decode_t* decode, uint32_t msj_id);
+
+uint32_t extract_msj_id(char* buff);
 
 #endif

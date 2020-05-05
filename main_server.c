@@ -16,4 +16,5 @@ int main(int argc, char** argv) {
     char* service = argv[1];
     server_run(&server, service); 
     server_destroy(&server);
+
 }

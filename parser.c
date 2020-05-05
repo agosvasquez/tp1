@@ -32,7 +32,6 @@ int encoded_create(encode_t* encode){
     return 0;
 }
 
-
 void encoded_destoyed(encode_t* encoded){
     buffer_destroyed(encoded->bytes);
     free(encoded->bytes);
@@ -46,12 +45,22 @@ int decoded_create_size(decode_t* decode, int size){
     buffer_t* buff = malloc(sizeof(buffer_t));
     buffer_create_size(buff, size);
     decode->bytes = buff;
+    decode->destino = NULL;
+    decode->path= NULL;
+    decode->interface = NULL;
+    decode->method = NULL;
+    decode->params = NULL; 
     return 0;
 }
 
 void decoded_destroyed(decode_t* decode){
     buffer_destroyed(decode->bytes);
     free(decode->bytes);
+    free(decode->destino);
+    free(decode->interface);
+    free(decode->path);
+    free(decode->method);
+    //free(decode->params);
 }
 
 int number_padd(int size, int mult){
@@ -84,6 +93,8 @@ int encode_line(encode_t * encode, char* data){
     printf("firma: %s\n", firm);
     int long_param = encode_params_firm(encode,firm);
     uint32_t swap_long_par= to_little_32(long_param);
+ 
+    
     memcpy(encode->bytes->data + POS_BODY_SIZE, (char*)&swap_long_par, sizeof(uint32_t));
     int long_arr = encode->bytes->used - POS_START_ARR - encode->count_pad;
     uint32_t swap_long_ar= to_little_32(long_arr);
@@ -183,7 +194,6 @@ int encode_firm(encode_t* encode, int* cant_par){
     return 0;
 }
 
-
 int encode_params_firm( encode_t* encode,char* firm){
     int counter_par =0;
     int long_param = 0;
@@ -202,12 +212,10 @@ int encode_params_firm( encode_t* encode,char* firm){
     return long_param;
 }
 
-
 uint16_t to_little_16( uint16_t x){
     uint16_t to_net =htons(x);
     return bswap_16(to_net);
 }
-
 
 uint32_t to_little_32( uint32_t x){
     uint32_t to_net =htonl(x);
@@ -233,88 +241,103 @@ int encode_extract_size(char* buff, int pos){
 }
 
 
-int decode_fill_dest(char* param_fill,  buffer_t* buff , int size ){
-    param_fill = malloc(size);
-    memset(param_fill, 0, size);
-    memcpy(param_fill, buff->data+ buff->read, size);
+int decode_fill_par(char** param_fill,  buffer_t* buff , int size ){
+    *param_fill = malloc(size);
+    memset(*param_fill, 0, size);
+    memcpy(*param_fill, buff->data+ buff->read, size);
+    printf("size en fill dest: %d\n", size);
     buff->read += size;
-    printf("param: %s", param_fill);
+    printf("param: %s\n", *param_fill);
     return 0;
 
 }
 
 int size_param(decode_t* decode, buffer_t* buff){
-    int size_param = 0;
+    uint32_t _size_param;
+    uint32_t size_param;
     //posicion del size es en 4 
-    memcpy(size_param, buff->data + buff->read + 4 , sizeof(int) );
-    buff->read += 8;
-    int padd = number_padd(size_param , 8 );
-    int to_read = size_param+ padd + SIZE_END;
-    return 0;
+    memset(&_size_param,0, sizeof(int));
+    memset(&size_param,0, sizeof(int));
+    printf("buff->read %ld \n", buff->read);
+    /*uint8_t * hexa = (uint8_t*) buff->data + buff->read + 3;
+    for (int i = 0; i < buff->used; i++){
+            if (i > 0) printf(":");
+            printf("%02X", hexa[i]);
+    }*/
+    memcpy(&_size_param, buff->data + buff->read + 3 , sizeof(int) );
+    printf("size_param: %d\n", _size_param);
     
+    size_param = to_little_32(_size_param);
+    printf("size_param: %d\n", size_param);
+    buff->read += 7;
+    int padd = number_padd(size_param + SIZE_END, 8 );
+    printf("padd: %d\n ", padd);
+    printf("LEN FINAL %d\n", size_param+ padd + SIZE_END);
+    return size_param+ padd + SIZE_END;   
 }
 
 int decode_dest_param(decode_t* decode, buffer_t* buff){
     int size = size_param(decode, buff);
-    decode_fill_dest(decode->destino,buff,size);
+    decode_fill_par(&decode->destino,buff,size);
     return 0;
 }
 
 int decode_path_param(decode_t* decode, buffer_t* buff){
     int size = size_param(decode, buff);
-    decode_fill_dest(decode->path,buff,size);
+    decode_fill_par(&decode->path,buff,size);
     return 0;
 }
 
 int decode_inter_param(decode_t* decode, buffer_t* buff){
     int size = size_param(decode, buff);
-    decode_fill_dest(decode->interface,buff,size);
+    decode_fill_par(&decode->interface,buff,size);
     return 0;
 }
 
 int decode_meth_param(decode_t* decode, buffer_t* buff){
     int size = size_param(decode, buff);
-    decode_fill_dest(decode->method,buff,size);
+    decode_fill_par(&decode->method,buff,size);
     return 0;
 }
 
-
 int decode_messaje(decode_t* decode){
     buffer_t* buff = decode->bytes;
-    char type; 
+    uint8_t type =0; 
+    printf("buff-> read %ld\n", buff->read);
+    printf("buff->used %ld\n", buff->used);
     while(buff->read < buff->used){
-        memcpy(type, buff + buff->read, 1 );
+        printf("entre\n");
+        memcpy(&type, buff->data + buff->read, 1 );
         buff->read += 1;
-        const char prot_des =  0x06;
-        const char prot_path =  0x01;
-        const char prot_inter =  0x02;
-        const char prot_meth =  0x03;
-        const char prot_firm =  0x09;
+        printf("%02X\n",type);
         switch (type){
-            case prot_des:
-                decode_dets_param(decode,buff);
-                break;
-            case prot_path:
-                decode_path_param(decode,buff);
-                break;
-            case prot_inter:
-                decode_inter_param(decode,buff);
-                break;
-            case prot_meth:
-                decode_meth_param(decode,buff);
-                break;
-            /*case prot_firm:
-                decode_firm_param(buff);
-                break;
-            */
-            default:
-                return -1;
+        case  0x06:
+            decode_dest_param(decode,buff);
+            break;
+        case 0x01:
+            decode_path_param(decode,buff);
+            break;
+        case 0x02:
+            decode_inter_param(decode,buff);
+            break;
+        case 0x03:
+            decode_meth_param(decode,buff);
+            break;
+        /*case  0x09:
+            decode_firm_param(buff);
+            break;
+        */
+        default:
+            return -1;
         }
     }
     return 0;
 }
 
 void decoded_output(decode_t* decode, uint32_t msj_id){
-    printf("Id:" );
-    printf("%" PRIu32 "\n",msj_id);
+    printf("* Id: 0x%08" PRIx16 "\n", msj_id);
+    printf("* Destino: %s\n", decode->destino);
+    printf("* Path: %s\n", decode->path);
+    printf("* Interfaz: %s\n", decode->interface);
+    printf("* Metodo: %s\n", decode->method);
 }

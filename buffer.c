@@ -61,24 +61,24 @@ int buffer_realloc(buffer_t* buffer){
 }
 
 int buffer_save_data(buffer_t* buffer, char* data, int size){
-    //printf("buffer capacity %ld\n", buffer->capacity);
+    printf("buffer capacity %ld\n", buffer->capacity);
     //printf("data size:%d \n", size);
     //printf("strlen data:%ld\n", strlen(data));
     //printf("buffer used %ld\n", buffer->used);
-     if (buffer->capacity <= buffer->used + size){
+     while(buffer->capacity <= buffer->used + size){
         printf("REALLOC\n");
         buffer_realloc(buffer);
     }
     //printf("memcpy save\n");
-    //printf("size %d\n",size);
+    printf("size to save %d\n",size);
     //printf("buffer data antes de guardar %s\n", buffer->data);
     //printf("data %s\n", data);
     if (buffer->used > 0) memcpy(buffer->data + buffer->used, data, size);
     else memcpy(buffer->data, data, size);
     //printf("afeter memcpy save\n");
     //printf("buffer data %s\n", buffer->data);
-    //printf("buffer used %ld\n", buffer->used);
-    //printf("buffer capacity %ld\n", buffer->capacity);
+    printf("buffer used %ld\n", buffer->used);
+    printf("buffer capacity %ld\n", buffer->capacity);
     buffer->used += size;
     //printf("saliendo de save\n");
     //printf("data:%ld \n", strlen(data));

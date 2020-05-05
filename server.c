@@ -1,8 +1,6 @@
 #include "server.h"
 #include "socket.h"
-#include "client.h"
 #include "stdint.h"
-#include "parser.h"
 #include "error.h"
 #include <byteswap.h>
 #include <errno.h>
@@ -10,15 +8,27 @@
 #include <stdio.h>
 
 int server_create(server_t* self){
-    socket_t socket;
-    socket_create(&socket);
-    self->socket = &socket;
+    socket_t* socket = malloc(sizeof(socket_t));;
+    socket_create(socket);
+    self->socket = socket;
     return 0;
 }
 
 int server_destroy(server_t* self){
     socket_shutdown(self->socket, SHUT_RDWR);
+    socket_destroy(self->socket);
+    free(self->socket);
     return 0;
+}
+int server_receive(client_t* client, decode_t*decode, int size){
+        char aux[size];
+        memset(aux, 0, size);
+        int bytes = socket_receive(client->socket, aux, size);
+        if (bytes < 0) throw_sterr("Recive fails", strerror(errno) );
+        // client closed
+        if (bytes == 0) return bytes;
+        buffer_save_data(decode->bytes, aux , size);
+        return bytes;
 }
 
 int server_run(server_t* self, char* service){
@@ -36,35 +46,36 @@ int server_run(server_t* self, char* service){
     while(1){
         printf("arranco\n");
         uint8_t buff[16]= "";
+        char* msj;
         int bytes = socket_receive(client.socket,(char*)buff, sizeof(buff));
-        printf("bytes: %d", bytes);
+        printf("bytes: %d\n", bytes);
         if (bytes < 0) throw_sterr("Recive fails", strerror(errno) );
         // client closed
         if (bytes == 0) break;
         int body_size = extract_array_size((char*)buff);
         int array_size = extract_array_size((char*)buff);
+        uint32_t msj_id = extract_msj_id((char*)buff);
         int array_padd_size = number_padd(array_size, 8) + array_size;
-        for (int i = 0; i < sizeof(buff); i++){
-                if (i > 0) printf(":");
-                printf("%02X", buff[i]);
-        }
-        printf("\n");
-        printf("size:%d", array_padd_size);
+        printf("array size:%d\n", array_padd_size);
+
         decoded_create_size(&decode, array_padd_size+1);
-        socket_receive(client.socket, (&decode)->bytes->data, array_padd_size);
+        server_receive(&client, &decode, array_padd_size);
+        // receive del cuerpo!!!
         uint8_t * hexa = (uint8_t*) (&decode)->bytes->data;
         for (int i = 0; i < array_padd_size; i++){
                 if (i > 0) printf(":");
                 printf("%02X", hexa[i]);
         }
         printf("\n");
+
+        decode_messaje(&decode);
+        
+        decoded_output(&decode,msj_id);
         socket_send(client.socket, message, sizeof(message));
+        
         decoded_destroyed(&decode);
     }
     printf("afuera");
     client_destroy(&client);
-    server_destroy(self);
-
     return 0;
 }
-
