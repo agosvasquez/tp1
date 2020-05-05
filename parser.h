@@ -16,7 +16,7 @@ typedef struct decode_t{
     char* path;
     char* interface;
     char* method;
-    char* params; 
+    buffer_t* params; 
 } decode_t;
 
 // encode a file into dbus protocol
@@ -76,5 +76,9 @@ int decode_inter_param(decode_t* decode, buffer_t* buff);
 void decoded_output(decode_t* decode, uint32_t msj_id);
 
 uint32_t extract_msj_id(char* buff);
+
+int encode_body(encode_t * encode, char* params);
+
+int save_param(encode_t * encode, char* param, int size);
 
 #endif

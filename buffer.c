@@ -51,7 +51,7 @@ int buffer_is_finished_line(char * line){
 int buffer_realloc(buffer_t* buffer){
     size_t new_tam= buffer->capacity * INCREASE_FACTOR;
     //printf("buffer: %s\n", buffer->data);
-    //printf("buffer cap: %ld\n", buffer->capacity);
+    printf("buffer cap: %ld\n", buffer->capacity);
     //printf("buffer strlen: %ld\n", strlen(buffer->data));
     char *aux = (char*)realloc(buffer->data, new_tam);
     if (!aux) throw_error("realloc error\n");
@@ -61,8 +61,8 @@ int buffer_realloc(buffer_t* buffer){
 }
 
 int buffer_save_data(buffer_t* buffer, char* data, int size){
-    printf("buffer capacity %ld\n", buffer->capacity);
-    //printf("data size:%d \n", size);
+    //printf("buffer capacity %ld\n", buffer->capacity);
+    //printf("data :%s \n", data);
     //printf("strlen data:%ld\n", strlen(data));
     //printf("buffer used %ld\n", buffer->used);
      while(buffer->capacity <= buffer->used + size){
@@ -70,15 +70,15 @@ int buffer_save_data(buffer_t* buffer, char* data, int size){
         buffer_realloc(buffer);
     }
     //printf("memcpy save\n");
-    printf("size to save %d\n",size);
+    //printf("size to save %d\n",size);
     //printf("buffer data antes de guardar %s\n", buffer->data);
     //printf("data %s\n", data);
     if (buffer->used > 0) memcpy(buffer->data + buffer->used, data, size);
     else memcpy(buffer->data, data, size);
-    //printf("afeter memcpy save\n");
+    printf("afeter memcpy save\n");
     //printf("buffer data %s\n", buffer->data);
-    printf("buffer used %ld\n", buffer->used);
-    printf("buffer capacity %ld\n", buffer->capacity);
+    //printf("buffer used %ld\n", buffer->used);
+    //printf("buffer capacity %ld\n", buffer->capacity);
     buffer->used += size;
     //printf("saliendo de save\n");
     //printf("data:%ld \n", strlen(data));
@@ -125,7 +125,8 @@ int buffer_save_from_file(buffer_t* d_buff,char* buff, FILE* file){
         //printf("antes de print");
         //printf("LO QUE ESTA GUAR ANTES DEL READ %s\n", d_buff->data);
         fread(buff, INITIAL_BUFF_SIZE-1,1, file);
-        if(strlen(buff) < INITIAL_BUFF_SIZE-1 && file != stdin) {
+        // Si no anda probar esto /*&& file != stdin*/
+        if(strlen(buff) < INITIAL_BUFF_SIZE-1 ) {
             //ultima pasada
             //drop "/0" cuando esta en un archivo 
             printf("desde aca\n");

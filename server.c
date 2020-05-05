@@ -52,17 +52,22 @@ int server_run(server_t* self, char* service){
         if (bytes < 0) throw_sterr("Recive fails", strerror(errno) );
         // client closed
         if (bytes == 0) break;
-        int body_size = extract_array_size((char*)buff);
+        int body_size = extract_body_size((char*)buff);
+         printf("body size %d \n", body_size);
         int array_size = extract_array_size((char*)buff);
         uint32_t msj_id = extract_msj_id((char*)buff);
         int array_padd_size = number_padd(array_size, 8) + array_size;
-        printf("array size:%d\n", array_padd_size);
+        printf("size arr without padding %d \n", array_size);
+        printf("array_pad_size %d\n", array_padd_size);
 
-        decoded_create_size(&decode, array_padd_size+1);
-        server_receive(&client, &decode, array_padd_size);
+        int to_read = body_size + array_padd_size;
+        printf("buff size:%d\n", to_read);
+
+        decoded_create_size(&decode, to_read+1);
+        server_receive(&client, &decode, to_read);
         // receive del cuerpo!!!
         uint8_t * hexa = (uint8_t*) (&decode)->bytes->data;
-        for (int i = 0; i < array_padd_size; i++){
+        for (int i = 0; i < to_read; i++){
                 if (i > 0) printf(":");
                 printf("%02X", hexa[i]);
         }
