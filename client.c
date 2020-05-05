@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200112L
 #include <string.h>
 #include "socket.h"
 #include "client.h"
@@ -7,6 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 const int INITIAL_SIZE = 32;
 //const int INCREASE_FACTOR = 2;
@@ -43,14 +45,18 @@ int client_run(client_t* self, const char* host, const char* service, FILE* file
     return 0;
 }
 
+void client_increment_id(encode_t* encoded){
+    encoded->msj_id += to_little_32(0x0001);
+}
 
 int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
     encode_t encoded;
     int bytes, line_bytes;
     char buf_recive[3];
     buffer_create(d_buf);
+    uint32_t msj_id = to_little_32(0x0001);
     while(1){
-        encoded_create(&encoded);
+        encoded_create(&encoded, msj_id);
         char* line = NULL;
         printf("encode buffer used %ld\n", (&encoded)->bytes->used);
         buffer_get_line(d_buf,buff,&line,file);
@@ -66,11 +72,12 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
         bytes = socket_send(self->socket, (&encoded)->bytes->data, (&encoded)->bytes->used);
         printf("Bytes enviados: %d\n", bytes);
         socket_receive(self->socket,buf_recive,sizeof(buf_recive)); 
-        printf("Respuesta service: %s\n",buf_recive);
+        client_output(&encoded,buf_recive);
         if(bytes < 0) throw_error("error en el send"); 
         free(line);
         encoded_destoyed(&encoded);
         //pregunto si se leyo todo
+        msj_id += to_little_32(0x0001);
         if(d_buf->read == d_buf->used) break;
 
     }
@@ -78,6 +85,11 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
     //printf("Respuesta service: %s\n",buf_recive);
     buffer_destroyed(d_buf);
     return 0;
+}
+
+void client_output(encode_t* encode, char* server_respose){
+    printf("0x%08" PRIx16 , encode->msj_id);
+    printf(": %s \n", server_respose);
 }
 
 

@@ -46,7 +46,6 @@ int server_run(server_t* self, char* service){
     while(1){
         printf("arranco\n");
         uint8_t buff[16]= "";
-        char* msj;
         int bytes = socket_receive(client.socket,(char*)buff, sizeof(buff));
         printf("bytes: %d\n", bytes);
         if (bytes < 0) throw_sterr("Recive fails", strerror(errno) );

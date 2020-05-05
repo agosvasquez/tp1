@@ -24,11 +24,11 @@ int SIZE_SEP = 1;
 
 int INIT_ENCODED_BUFF_SIZE = 32;
 
-int encoded_create(encode_t* encode){
+int encoded_create(encode_t* encode, uint32_t msj_id){
     buffer_t* buff = malloc(sizeof(buffer_t));
     buffer_create(buff);
     encode->bytes = buff;
-    encode->msj_id = to_little_32(0x0001);
+    encode->msj_id = msj_id ;
     printf("EL ID ES %02X\n", encode->msj_id);
     encode->count_pad=0;
     return 0;
@@ -39,9 +39,6 @@ void encoded_destoyed(encode_t* encoded){
     free(encoded->bytes);
 }
 
-void encoded_increment_id(encode_t* encoded){
-    encoded->msj_id += to_little_32(0x0001);
-}
 
 int decoded_create_size(decode_t* decode, int size){
     buffer_t* buff = malloc(sizeof(buffer_t));

@@ -25,7 +25,7 @@ int encode_line(encode_t * encode, char* buff);
 // decode a uint8 
 int decode_file(decode_t * decode, uint8_t* buff);
 
-int encoded_create(encode_t* encode);
+int encoded_create(encode_t* encode, uint32_t msj_id);
 
 void encoded_destoyed(encode_t* encoded);
 
