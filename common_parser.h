@@ -81,9 +81,6 @@ int encode_body(encode_t * encode, char* params);
 
 int save_param(encode_t * encode, char* param, int size);
 
-<<<<<<< HEAD:common_parser.h
 int get_total_padd(decode_t* decode);
 
-=======
->>>>>>> 30db37c2db9b51617ad53b9029d6b4c35bd50f9e:common_parser.h
 #endif
