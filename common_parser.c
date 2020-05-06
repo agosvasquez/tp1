@@ -284,7 +284,6 @@ int size_param(decode_t* decode, buffer_t* buff){
 
     buff->read += 7;
     int padd = number_padd(size_param + SIZE_END, 8);
-
     return size_param+ padd + SIZE_END;   
 }
 
@@ -394,4 +393,3 @@ void decoded_output(decode_t* decode, uint32_t msj_id){
         }
     }
 }
-
