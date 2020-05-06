@@ -20,7 +20,7 @@ int socket_bind_and_listen(socket_t* self, const char* service);
 
 // Cuando se conecta un cliente lo asigna a accepted_socket
 // 0 exito -1 error
-int socket_accept(socket_t* self, socket_t* accepted_socket );
+int socket_accept(socket_t* self, socket_t* accepted_socket);
 
 // Dada una direccion y servicio/puerto se conecta a un servidor (cliente)
 // 0 exito -1 error
