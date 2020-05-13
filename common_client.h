@@ -8,7 +8,7 @@ typedef struct client_t {
 }client_t;
 
 //Crear cliente
-int client_create(client_t* self);
+int client_create(client_t* self, socket_t* socket);
 
 //Destruit cliente
 int client_destroy(client_t* self);

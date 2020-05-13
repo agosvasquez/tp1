@@ -1,12 +1,12 @@
 #include "common_client.h"
 #include "common_error.h"
 #include <inttypes.h>
+#include <string.h>
 
 const int INITIAL_SIZE = 32;
 //const int INCREASE_FACTOR = 2;
 
-int client_create(client_t* self){
-    socket_t* socket = malloc(sizeof(socket_t));
+int client_create(client_t* self, socket_t* socket){
     socket_create(socket);
     self->socket = socket;
     return 0;
@@ -15,7 +15,6 @@ int client_create(client_t* self){
 int client_destroy(client_t* self){
     socket_shutdown(self->socket,SHUT_RDWR);
     socket_destroy(self->socket);
-    free(self->socket);
     return 0;
 }
 
