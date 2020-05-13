@@ -201,6 +201,7 @@ int encode_firm(encode_t* encode, int* cant_par){
     uint8_t stat = 0x01;
     uint8_t s = 0x73;
     uint16_t G = to_little_16(0x67);
+    size_t size_param = *cant_par +5;
 
     char aux[SIZE_PARAM];
     memset(aux,0,SIZE_PARAM);
