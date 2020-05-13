@@ -45,7 +45,6 @@ int server_run(server_t* self, char* service){
     // en el programa real extraer la longitud
     // de los primeros bytes
     while (1){
-       
         uint8_t buff[16]= "";
         int bytes = socket_receive(&socket,(char*)buff, sizeof(buff));
         

@@ -73,7 +73,7 @@ int encode_line(encode_t * encode, char* data){
     uint16_t O = to_little_16(0x6F);
     //char *save_ptr = NULL;
     size_t s_firm, s_meth;
-    char dest[SIZE_PARAM] ;
+    char dest[SIZE_PARAM];
     char path[SIZE_PARAM];
     char inter[SIZE_PARAM];
     char method[SIZE_PARAM];
@@ -92,14 +92,14 @@ int encode_line(encode_t * encode, char* data){
     // +3 por los espacios +1 por el parentesis
     s_firm= s_meth+ strlen(method)+ 4;
     char* firm = data+ s_firm;
-    int par_len= strlen(firm);
+    int par_len= strlen(firm) + SIZE_END;
     memcpy(firm+par_len, "\0", sizeof(char));
-
-    char params[par_len + SIZE_END];
-    snprintf(params, par_len +1 , "%s", firm);
+    char params[SIZE_PARAM];
+    memset(params,0,SIZE_PARAM);
+    snprintf(params, par_len , "%s", firm);
     
     encode_params_firm(encode,firm);
-    int long_arr = encode->bytes->used - POS_START_ARR ;
+    int long_arr = encode->bytes->used - POS_START_ARR;
     uint32_t swap_size_a= to_little_32(long_arr);
     memcpy(encode->bytes->data+POS_ARR_S,(char*)&swap_size_a,sizeof(uint32_t));
 
@@ -201,10 +201,9 @@ int encode_firm(encode_t* encode, int* cant_par){
     uint8_t stat = 0x01;
     uint8_t s = 0x73;
     uint16_t G = to_little_16(0x67);
-    size_t size_param = *cant_par +5;
 
-    char aux[size_param];
-    memset(aux,0,size_param);
+    char aux[SIZE_PARAM];
+    memset(aux,0,SIZE_PARAM);
     memcpy(aux, (char*)&t_p, 1);
     memcpy(aux+1,(char*)&stat ,1);
     memcpy(aux+2, (char*)&G, sizeof(uint16_t));
@@ -230,7 +229,7 @@ int encode_params_firm(encode_t* encode,char* firm){
     if (firm[0] != ')'){
         while (sscanf(firm, "%[^,],", param)){
             counter_par +=1;
-            if(!strchr(firm, ','))break;  
+            if (!strchr(firm, ','))break;  
             firm += strlen(param)+1;
             memset(param,0,SIZE_PARAM);
         }

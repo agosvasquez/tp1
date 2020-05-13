@@ -4,7 +4,7 @@
 #include <string.h>
 
 const int INITIAL_SIZE = 32;
-//const int INCREASE_FACTOR = 2;
+const int COTA = 100;
 
 int client_create(client_t* self, socket_t* socket){
     socket_create(socket);
@@ -86,12 +86,12 @@ int _get_line(char * buff, char* copy){
     return 0;
 }
 
-int client_save_from_file(buffer_t* d_buff,char* buff, FILE* file , int size){
+int client_save_file(buffer_t* d_buff,char* buff, FILE* file , int size){
     while (strchr(buff,'\n') == NULL){
         memset(buff,0, size);
         size_t read = fread(buff, size-1,1, file);
         if (read*size < size-1 && strlen(buff)>0) {
-            char aux[size];
+            char aux[COTA];
             memset(aux,0, (size));
             memcpy(aux, buff, strlen(buff) -1);
             buffer_save_data(d_buff,aux,strlen(aux));
@@ -109,7 +109,7 @@ int client_get_line(buffer_t* d_buf, char* buff, char** line, FILE* file){
     while (1){
         memset(buff,0,INITIAL_SIZE);
         if (!feof(file))
-            if ((line_b = client_save_from_file(d_buf,buff, file, INITIAL_SIZE))< 0) 
+            if ((line_b = client_save_file(d_buf,buff, file, INITIAL_SIZE))< 0) 
                 return -1;
         while (d_buf->read < d_buf->used){
             set_line(d_buf, line);
