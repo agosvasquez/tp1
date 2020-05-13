@@ -59,10 +59,7 @@ int socket_bind_and_listen(socket_t* self, const char* service){
 }
 
 int socket_accept(socket_t* self, socket_t* accepted_socket){
-    struct sockaddr peer_addr;
-    socklen_t addrlen = sizeof(peer_addr);
-
-    int s = accept(self->socket, &peer_addr,&addrlen);
+    int s = accept(self->socket, NULL,NULL);
     if (s < 0) throw_error("Not accepted connection");
     accepted_socket->socket = s;
     return 0;
