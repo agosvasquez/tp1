@@ -33,7 +33,7 @@ void encode_set_static(encode_t* encode);
 
 int encode_arg(encode_t* encode, char* arg, uint8_t* t_p, uint16_t* t_d);
 
-int decoded_create_size(decode_t* decode, int size);
+int decoded_create_size(decode_t* decode,buffer_t* buffer, int size);
 
 int decoded_create(decode_t* decode);
 

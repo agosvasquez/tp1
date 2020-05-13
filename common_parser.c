@@ -32,13 +32,12 @@ int encoded_create(encode_t* encode, uint32_t msj_id){
 }
 
 void encoded_destoyed(encode_t* encoded){
-    buffer_destroyed(encoded->bytes);
+    buffer_destroy(encoded->bytes);
     free(encoded->bytes);
 }
 
 
-int decoded_create_size(decode_t* decode, int size){
-    buffer_t* buff = malloc(sizeof(buffer_t));
+int decoded_create_size(decode_t* decode,buffer_t* buff, int size){
     buffer_create_size(buff, size);
     decode->bytes = buff;
     decode->destino = NULL;
@@ -50,14 +49,13 @@ int decoded_create_size(decode_t* decode, int size){
 }
 
 void decoded_destroyed(decode_t* decode){
-    buffer_destroyed(decode->bytes);
-    free(decode->bytes);
+    buffer_destroy(decode->bytes);
     free(decode->destino);
     free(decode->interface);
     free(decode->path);
     free(decode->method);
     if (decode->params){
-        buffer_destroyed(decode->params);
+        buffer_destroy(decode->params);
         free(decode->params);
     }
 }
