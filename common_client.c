@@ -28,16 +28,12 @@ int client_run(client_t* self, const char* h, const char* s, FILE* file){
     return 0;
 }
 
-void client_increment_id(encode_t* encoded){
-    encoded->msj_id += to_little_32(0x0001);
-}
-
 int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
     encode_t encode;
     int bytes;
     char buf_recive[3];
     buffer_create(d_buf);
-    uint32_t msj_id = to_little_32(0x0001);
+    uint32_t msj_id = 0x0001;
     while (1){
         encoded_create(&encode, msj_id);
         char* line = NULL;
@@ -59,7 +55,7 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
         free(line);
         encoded_destoyed(&encode);
         //pregunto si se leyo todo
-        msj_id += to_little_32(0x0001);
+        msj_id += 1;
         if (d_buf->read == d_buf->used) break;
     }
     buffer_destroy(d_buf);
@@ -127,7 +123,7 @@ int client_get_line(buffer_t* d_buf, char* buff, char** line, FILE* file){
     return 0;
 }
 void client_output(encode_t* encode, char* server_respose){
-    printf("0x%08" PRIx16 , encode->msj_id);
+    printf("0x%08" PRIx16 , to_little_32(encode->msj_id));
     printf(": %s \n", server_respose);
 }
 
