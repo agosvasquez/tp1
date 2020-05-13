@@ -42,7 +42,7 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
         encoded_create(&encode, msj_id);
         char* line = NULL;
 
-        buffer_get_line(d_buf,buff,&line,file);
+        client_get_line(d_buf,buff,&line,file);
         if (!line){
             free(line);
             encoded_destoyed(&encode);
@@ -62,10 +62,70 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
         msj_id += to_little_32(0x0001);
         if (d_buf->read == d_buf->used) break;
     }
-    buffer_destroyed(d_buf);
+    buffer_destroy(d_buf);
+    return 0;
+}
+size_t set_line(buffer_t* d_buf, char** line){
+    size_t line_size = strlen(d_buf->data + d_buf->read)+1;
+    *line= malloc(sizeof(char)* line_size);
+    memset(*line,0,sizeof(char)*(line_size));
+    return line_size;
+}
+
+int _get_line(char * buff, char* copy){
+    int pos_final = buffer_is_finished_line(buff);
+    if (pos_final < 0) return -1;
+    // +1 porque en pos se cuentan desde 0 osea
+    // que para contar memoria es mas 1
+    memcpy(copy, buff, pos_final+1);
+    /* add a final null terminator */
+    size_t final= strlen(copy);
+    memcpy(copy + final , "\0", 1);
     return 0;
 }
 
+int client_save_from_file(buffer_t* d_buff,char* buff, FILE* file , int size){
+    while (strchr(buff,'\n') == NULL){
+        memset(buff,0, size);
+        size_t read = fread(buff, size-1,1, file);
+        if (read*size < size-1 && strlen(buff)>0) {
+            char aux[size];
+            memset(aux,0, (size));
+            memcpy(aux, buff, strlen(buff) -1);
+            buffer_save_data(d_buff,aux,strlen(aux));
+            break;
+        }
+        buffer_save_data(d_buff,buff,strlen(buff));
+        if (read == 0) break;
+    }
+    buffer_set_final_char(d_buff, d_buff->used);
+    return strlen(buff);
+}
+
+int client_get_line(buffer_t* d_buf, char* buff, char** line, FILE* file){
+    size_t line_b=0;
+    while (1){
+        memset(buff,0,INITIAL_SIZE);
+        if (!feof(file))
+            if ((line_b = client_save_from_file(d_buf,buff, file, INITIAL_SIZE))< 0) 
+                return -1;
+        while (d_buf->read < d_buf->used){
+            set_line(d_buf, line);
+            if (_get_line(d_buf->data+d_buf->read, *line)< 0) break;
+            d_buf->read += strlen(*line);
+            return 0;
+        }
+        if (line_b < INITIAL_SIZE-1) break;
+        if (d_buf->used == 0) break;
+    }
+    free(*line);
+    if (d_buf->read < d_buf->used){
+        size_t line_size = set_line(d_buf, line);
+        memcpy(*line,d_buf->data+d_buf->read,line_size);
+        d_buf->read += strlen(*line);
+    }
+    return 0;
+}
 void client_output(encode_t* encode, char* server_respose){
     printf("0x%08" PRIx16 , encode->msj_id);
     printf(": %s \n", server_respose);
