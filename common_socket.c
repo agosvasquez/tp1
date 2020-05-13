@@ -41,17 +41,22 @@ int socket_bind_and_listen(socket_t* self, const char* service){
     if ((s = getaddrinfo(NULL,service, &hints, &res)) != 0) 
         throw_sterr("getaddrinfo:", gai_strerror(s));
     
-    if ((sfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol))< 0) 
+    if ((sfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol))< 0){
+        freeaddrinfo(res);
         throw_error("create socket");
-
-    if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) 
+    }
+    if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0){
+        freeaddrinfo(res);
         throw_error("setsockop error");
-
-    if (bind(sfd, res->ai_addr, res->ai_addrlen) < 0) 
+    }    
+    if (bind(sfd, res->ai_addr, res->ai_addrlen) < 0){
+        freeaddrinfo(res);
         throw_error("Bind error");
-
-    if (listen(sfd, QUEQUE_LEN_LISTEN) < 0) 
+    }
+    if (listen(sfd, QUEQUE_LEN_LISTEN) < 0){
+        freeaddrinfo(res);
         throw_error("Listen error");
+    }
     
     freeaddrinfo(res);
     self->socket = sfd; 
@@ -82,8 +87,10 @@ int socket_connect(socket_t* self, const char* host_name, const char* service){
         }
         close(socket_fd);
     }
-    if (!r) throw_sterr("Could not connect\n", NULL);               
-    
+    if (!r) {
+        freeaddrinfo(res); 
+        throw_sterr("Could not connect\n", NULL);               
+    }
     freeaddrinfo(res);  
     return 0;
 }
@@ -107,7 +114,7 @@ int socket_receive(socket_t* self, char* buff, size_t length){
     int to_read = length;
     while (sum_b != length){
         if ((bytes = recv(self->socket, buff+sum_b, to_read,0)) <0) 
-            throw_error("send failed");
+            throw_error("recive failed");
         // client closed
         if (bytes == 0) return 0;
         sum_b += bytes;

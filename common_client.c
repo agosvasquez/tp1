@@ -46,12 +46,18 @@ int client_send_encode(client_t* self, char* buff, buffer_t* d_buf, FILE* file){
         }
         encode_line(&encode,line);
     
-
         bytes=socket_send(self->socket,encode.bytes->data,encode.bytes->used);
-
-        socket_receive(self->socket,buf_recive,sizeof(buf_recive)); 
+        if (bytes < 0) {
+            free(line);
+            encoded_destoyed(&encode);
+        }
+         
+        if (socket_receive(self->socket,buf_recive,sizeof(buf_recive)) <0){
+            free(line);
+            encoded_destoyed(&encode);
+        }
         client_output(&encode,buf_recive);
-        if (bytes < 0) throw_error("error en el send"); 
+        
         free(line);
         encoded_destoyed(&encode);
         //pregunto si se leyo todo
