@@ -91,23 +91,27 @@ int socket_connect(socket_t* self, const char* host_name, const char* service){
 int socket_send(socket_t* self, char* buff , size_t length){
     int sum_b = 0;
     int bytes =0;
+    int to_send= length;
     while (sum_b != length){
-        if ((bytes = send(self->socket,buff+sum_b,length,MSG_NOSIGNAL))<0) 
+        if ((bytes = send(self->socket,buff+sum_b,to_send,MSG_NOSIGNAL))<0) 
             throw_error("send failed");
         sum_b += bytes;
+        to_send -= bytes;
     }
     return sum_b;
 }
 
-int socket_receive(socket_t* self, char* buff, size_t legth){
+int socket_receive(socket_t* self, char* buff, size_t length){
     int sum_b = 0;
     int bytes = 0;
-    while (sum_b != legth){
-        if ((bytes = recv(self->socket, buff+sum_b, legth,0)) <0) 
+    int to_read = length;
+    while (sum_b != length){
+        if ((bytes = recv(self->socket, buff+sum_b, to_read,0)) <0) 
             throw_error("send failed");
         // client closed
         if (bytes == 0) return 0;
         sum_b += bytes;
+        to_read -= bytes;
     }
     return sum_b;
 }
