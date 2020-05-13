@@ -21,6 +21,7 @@ int SIZE_END = 1;
 int SIZE_SEP = 1;
 
 int INIT_ENCODED_BUFF_SIZE = 32;
+int SIZE_PARAM = 100;
 
 int encoded_create(encode_t* encode, uint32_t msj_id){
     buffer_t* buff = malloc(sizeof(buffer_t));
@@ -70,24 +71,26 @@ int number_padd(int size, int mult){
 int encode_line(encode_t * encode, char* data){
     uint16_t S = to_little_16(0x73);
     uint16_t O = to_little_16(0x6F);
-    char *save_ptr = NULL;
-    size_t s_firm;
-
+    //char *save_ptr = NULL;
+    size_t s_firm, s_meth;
+    char dest[SIZE_PARAM] ;
+    char path[SIZE_PARAM];
+    char inter[SIZE_PARAM];
+    char method[SIZE_PARAM];
     encode_set_static(encode);
-    char * dest = strtok_r(data, " ", &save_ptr);
-    if (!dest) throw_error("destination not found");
+    memset(dest,0, SIZE_PARAM);
+    memset(path,0,SIZE_PARAM);
+    memset(inter,0,SIZE_PARAM);
+    memset(method,0,SIZE_PARAM);
+    sscanf(data, "%s %s %s" ,dest, path, inter);
+    s_meth= strlen(dest)+ strlen(path)+ strlen(inter);
+    sscanf(data + s_meth+3, "%[^(](", method);
     encode_arg(encode, dest, &type_prot_des, &S);
-    char* path = strtok_r(NULL, " ",&save_ptr);
-    if (!path) throw_error("path not found");
     encode_arg(encode, path, &type_prot_path, &O);
-    char* interface = strtok_r(NULL, " ", &save_ptr);
-    if (!interface) throw_error("interface not found");
-    encode_arg(encode, interface, &type_prot_inter, &S);
-    char* method = strtok_r(NULL, "(", &save_ptr);
-    if (!method) throw_error("method not found");
+    encode_arg(encode, inter, &type_prot_inter, &S);
     encode_arg(encode, method, &type_prot_meth,&S);
     // +3 por los espacios +1 por el parentesis
-    s_firm= strlen(dest)+ strlen(path)+ strlen(interface)+ strlen(method)+ 4;
+    s_firm= s_meth+ strlen(method)+ 4;
     char* firm = data+ s_firm;
     int par_len= strlen(firm);
     memcpy(firm+par_len, "\0", sizeof(char));
@@ -103,26 +106,27 @@ int encode_line(encode_t * encode, char* data){
     //long body
     int size_before_body= encode->bytes->used;
     encode_body(encode, params);
-    int long_param = encode->bytes->used -size_before_body;
+    int long_param = encode->bytes->used - size_before_body;
+
     uint32_t swap_size_p= to_little_32(long_param);
     memcpy(encode->bytes->data+POS_BOD_S,(char*)&swap_size_p,sizeof(uint32_t));
     return 0;  
 }
 
 int encode_body(encode_t * encode, char* params){
-    char* param, *par;
-    char *saveptr = NULL;
-    param = strtok_r(params, ",", &saveptr);
-    if (!param) throw_error("body param not found");
-    while (param != NULL){
+    char param[SIZE_PARAM];
+    char par[SIZE_PARAM];
+    if (params[0] == ')')return 0;    
+    while (sscanf(params, "%[^,],", param) == 1){
         int len = strlen(param);
         if (strchr(param, ')') != NULL) {
-            par = strtok_r(param, ")", &saveptr);
+            sscanf(param, "%[^)])", par);
             save_param(encode,par, len -1);
             break;
         }
         save_param(encode,param, len);
-        param = strtok_r(NULL, ",", &saveptr);
+        params+=len+1;
+        memset(param,0,SIZE_PARAM);
     }
     return 0;
 }
@@ -216,17 +220,20 @@ int encode_firm(encode_t* encode, int* cant_par){
 
     buffer_save_data(encode->bytes,*arg_pad, size_arg_pad);
     actualize_count_pad(encode,padd);
+    free(*arg_pad);
     return 0;
 }
 
 int encode_params_firm(encode_t* encode,char* firm){
     int counter_par =0;
-    char *saveptr = NULL;
-    char* param = strtok_r(firm, ",", &saveptr);
-    if (!param) throw_error("firm param not found");
-    while (param != NULL){
-        counter_par +=1;
-        param = strtok_r(NULL, ",", &saveptr);
+    char param [SIZE_PARAM];
+    if (firm[0] != ')'){
+        while (sscanf(firm, "%[^,],", param)){
+            counter_par +=1;
+            if(!strchr(firm, ','))break;  
+            firm += strlen(param)+1;
+            memset(param,0,SIZE_PARAM);
+        }
     }
     encode_firm(encode, &counter_par);
     
@@ -380,14 +387,16 @@ void decoded_output(decode_t* decode, uint32_t msj_id){
     printf("* Path: %s\n", decode->path);
     printf("* Interfaz: %s\n", decode->interface);
     printf("* Metodo: %s\n", decode->method);
-    if (decode->params){
-        char *save_ptr = NULL;
+    if (decode->params->data[0] != 0){
+        char *aux = decode->params->data;
         printf("* Parámetros:\n");
-        char* param = strtok_r(decode->params->data, ",", &save_ptr);
-        if (!param) throw_error("param not found");
-        while (param != NULL){
-            printf("  %s\n",param);
-            param = strtok_r(NULL, ",", &save_ptr);
+        char param[SIZE_PARAM];
+        memset(param,0, SIZE_END);
+        while (sscanf(aux, "%[^,]", param) == 1){
+            printf("    * %s\n",param);
+            aux += strlen(param)+1;
+            memset(param,0, SIZE_END);
         }
+        printf("\n");
     }
 }
