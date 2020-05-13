@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <string.h>
 
-const int QUQUE_LEN_LISTEN = 10;
+const int QUEQUE_LEN_LISTEN = 10;
 
 void socket_settings(struct addrinfo* hints){
     memset(hints, 0, sizeof(struct addrinfo));
@@ -50,7 +50,7 @@ int socket_bind_and_listen(socket_t* self, const char* service){
     if (bind(sfd, res->ai_addr, res->ai_addrlen) < 0) 
         throw_error("Bind error");
 
-    if (listen(sfd, QUQUE_LEN_LISTEN) < 0) 
+    if (listen(sfd, QUEQUE_LEN_LISTEN) < 0) 
         throw_error("Listen error");
     
     freeaddrinfo(res);
