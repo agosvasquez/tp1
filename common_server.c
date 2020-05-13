@@ -18,12 +18,12 @@ int server_destroy(server_t* self){
     return 0;
 }
 
-int server_receive(client_t* client, decode_t*decode, int size){
+int server_receive(socket_t* socket, decode_t*decode, int size){
         char aux [size];
         int total_bytes=0;
         memset(aux, 0, size);
-        int bytes = socket_receive(client->socket, aux, size);
-        if (bytes < 0) throw_sterr("Recive fails", strerror(errno) );
+        int bytes = socket_receive(socket, aux, size);
+        if (bytes < 0)  throw_sterr("Recive fails", strerror(errno) );
         // client closed
         if (bytes == 0) return bytes;
         buffer_save_data(decode->bytes, aux , size);
@@ -33,19 +33,18 @@ int server_receive(client_t* client, decode_t*decode, int size){
 
 int server_run(server_t* self, char* service){
     char message[3] = "OK\0";
-    client_t client;
     decode_t decode;
     socket_bind_and_listen(self->socket, service);
-    
-    client_create(&client);
+    socket_t socket;
+    socket_create(&socket);
   
-    socket_accept(self->socket, client.socket);
+    socket_accept(self->socket, &socket);
     // en el programa real extraer la longitud
     // de los primeros bytes
     while (1){
        
         uint8_t buff[16]= "";
-        int bytes = socket_receive(client.socket,(char*)buff, sizeof(buff));
+        int bytes = socket_receive(&socket,(char*)buff, sizeof(buff));
         
         if (bytes < 0) throw_sterr("Recive fails", strerror(errno) );
         // client closed
@@ -65,11 +64,11 @@ int server_run(server_t* self, char* service){
         decode_messaje(&decode);
         
         decoded_output(&decode,msj_id);
-        socket_send(client.socket, message, sizeof(message));
+        socket_send(&socket, message, sizeof(message));
         
         decoded_destroyed(&decode);
     }
     
-    client_destroy(&client);
+    socket_destroy(&socket);
     return 0;
 }
