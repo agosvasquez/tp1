@@ -15,7 +15,7 @@ int buffer_create(buffer_t* buffer);
 
 int buffer_create_size(buffer_t* buffer, int size);
 
-void buffer_destroyed(buffer_t* buffer);
+void buffer_destroy(buffer_t* buffer);
 
 int buffer_is_finished_line(char * line);
 

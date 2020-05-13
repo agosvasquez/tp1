@@ -25,7 +25,7 @@ int buffer_create_size(buffer_t* buffer, int size){
     return 0;
 }
 
-void buffer_destroyed(buffer_t* buffer){
+void buffer_destroy(buffer_t* buffer){
     free(buffer->data);
     buffer->data = NULL;
 }
