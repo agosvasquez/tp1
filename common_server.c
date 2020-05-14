@@ -63,7 +63,8 @@ int server_run(server_t* self, char* service){
         int to_read = body_size + array_size;
         
         buffer_t buffer;
-        decoded_create_size(&decode, &buffer, to_read+1);
+        buffer_t params;
+        decoded_create_size(&decode, &buffer,&params, to_read+1);
         if (server_receive(&socket, &decode, to_read) < 0){
                 socket_destroy(&socket);
                 decoded_destroyed(&decode);

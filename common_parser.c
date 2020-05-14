@@ -38,27 +38,25 @@ void encoded_destoyed(encode_t* encoded){
 }
 
 
-int decoded_create_size(decode_t* decode,buffer_t* buff, int size){
+int decoded_create_size(decode_t* decode,buffer_t* buff,buffer_t* p, int size){
     buffer_create_size(buff, size);
+    buffer_create_size(p, INIT_ENCODED_BUFF_SIZE);
     decode->bytes = buff;
     decode->destino = NULL;
     decode->path= NULL;
     decode->interface = NULL;
     decode->method = NULL;
-    decode->params = NULL; 
+    decode->params = p; 
     return 0;
 }
 
 void decoded_destroyed(decode_t* decode){
     buffer_destroy(decode->bytes);
+    buffer_destroy(decode->params);
     free(decode->destino);
     free(decode->interface);
     free(decode->path);
     free(decode->method);
-    if (decode->params){
-        buffer_destroy(decode->params);
-        free(decode->params);
-    }
 }
 
 int number_padd(int size, int mult){
@@ -92,11 +90,11 @@ int encode_line(encode_t * encode, char* data){
     // +3 por los espacios +1 por el parentesis
     s_firm= s_meth+ strlen(method)+ 4;
     char* firm = data+ s_firm;
-    int par_len= strlen(firm) + SIZE_END;
+    int par_len= strlen(firm);
     memcpy(firm+par_len, "\0", sizeof(char));
     char params[SIZE_PARAM];
     memset(params,0,SIZE_PARAM);
-    snprintf(params, par_len , "%s", firm);
+    snprintf(params, par_len + SIZE_END , "%s", firm);
     
     encode_params_firm(encode,firm);
     int long_arr = encode->bytes->used - POS_START_ARR;
@@ -329,11 +327,7 @@ int save_dec_param(decode_t* decode, buffer_t* buff){
 }
 
 
-int decode_firm_param(decode_t* decode, buffer_t* buff){
-    buffer_t* params = malloc(sizeof(buffer_t));
-    buffer_create_size(params, INIT_ENCODED_BUFF_SIZE);
-    decode->params = params;
-     
+int decode_firm_param(decode_t* decode, buffer_t* buff){ 
     // PARAMETROS
     uint8_t cant_param;
     memset(&cant_param,0, 1);
@@ -387,14 +381,16 @@ void decoded_output(decode_t* decode, uint32_t msj_id){
     printf("* Ruta: %s\n", decode->path);
     printf("* Interfaz: %s\n", decode->interface);
     printf("* Metodo: %s\n", decode->method);
-    if (decode->params->data[0] != 0){
-        char *aux = decode->params->data;
+    if (decode->params->data[0] != 0){     
+        int size = 0;
         printf("* Parametros:\n");
         char param[SIZE_PARAM];
-        memset(param,0, SIZE_END);
-        while (sscanf(aux, "%[^,]", param) == 1){
+        memset(param,0, SIZE_PARAM);
+        buffer_t* aux = decode->params;
+        memcpy(aux->data+ aux->used, "\0", sizeof(char));
+        while (sscanf(aux->data + size, "%[^,]", param) == 1){
             printf("    * %s\n",param);
-            aux += strlen(param)+1;
+            size += strlen(param)+1;
             memset(param,0, SIZE_END);
         }
     }

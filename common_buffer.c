@@ -17,9 +17,9 @@ int buffer_create(buffer_t* buffer){
 }
 
 int buffer_create_size(buffer_t* buffer, int size){
-    buffer->data = malloc(size * sizeof(char));
+    buffer->data = malloc(size);
     if (!buffer->data) throw_error("malloc error");
-    memset(buffer->data, 0, sizeof(char)* (size));
+    memset(buffer->data, 0, (size));
     buffer->capacity= size+1;
     buffer->used=0;
     buffer->read=0;
