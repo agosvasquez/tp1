@@ -384,12 +384,12 @@ int decode_messaje(decode_t* decode){
 void decoded_output(decode_t* decode, uint32_t msj_id){
     printf("* Id: 0x%08" PRIx16 "\n", to_little_32(msj_id));
     printf("* Destino: %s\n", decode->destino);
-    printf("* Path: %s\n", decode->path);
+    printf("* Ruta: %s\n", decode->path);
     printf("* Interfaz: %s\n", decode->interface);
     printf("* Metodo: %s\n", decode->method);
     if (decode->params->data[0] != 0){
         char *aux = decode->params->data;
-        printf("* Parámetros:\n");
+        printf("* Parametros:\n");
         char param[SIZE_PARAM];
         memset(param,0, SIZE_END);
         while (sscanf(aux, "%[^,]", param) == 1){
@@ -397,6 +397,6 @@ void decoded_output(decode_t* decode, uint32_t msj_id){
             aux += strlen(param)+1;
             memset(param,0, SIZE_END);
         }
-        printf("\n");
     }
+    printf("\n");
 }
