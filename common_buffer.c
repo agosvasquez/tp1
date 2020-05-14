@@ -31,17 +31,6 @@ void buffer_destroy(buffer_t* buffer){
     buffer->data = NULL;
 }
 
-
-int buffer_is_finished_line(char * line){
-    size_t length = strlen(line);
-    for (size_t pos = 0; pos < length; pos++){
-        if (line[pos] == '\n' || line[pos] == '\0'){
-            return pos;
-        }
-    }
-    return -1;  
-}
-
 int buffer_realloc(buffer_t* buffer){
     size_t new_tam= buffer->capacity * INCREASE_FACTOR;
     char *aux = (char*)realloc(buffer->data, new_tam);

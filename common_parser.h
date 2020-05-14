@@ -37,7 +37,7 @@ int decoded_create_size(decode_t* decode,buffer_t* buff,buffer_t* p, int size);
 
 int decoded_create(decode_t* decode);
 
-void decoded_destroyed(decode_t* decode);
+void decoded_destroy(decode_t* decode);
 
 int encode_convert_multiple(char* arg, char** arg_pad,int s_arg_p,size_t size);
 

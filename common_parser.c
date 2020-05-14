@@ -50,7 +50,7 @@ int decoded_create_size(decode_t* decode,buffer_t* buff,buffer_t* p, int size){
     return 0;
 }
 
-void decoded_destroyed(decode_t* decode){
+void decoded_destroy(decode_t* decode){
     buffer_destroy(decode->bytes);
     buffer_destroy(decode->params);
     free(decode->destino);
@@ -65,30 +65,47 @@ int number_padd(int size, int mult){
     return(( div + 1)* mult ) - size;
 }
 
+void initialize(char* arr1, char* arr2, char*arr3, char* arr4){
+    memset(arr1,0, SIZE_PARAM);
+    memset(arr2,0,SIZE_PARAM);
+    memset(arr3,0,SIZE_PARAM);
+    memset(arr4,0,SIZE_PARAM);
+}
+
+void set_array_len(encode_t* encode){
+    int long_arr = encode->bytes->used - POS_START_ARR;
+    uint32_t swap_size_a= to_little_32(long_arr);
+    memcpy(encode->bytes->data+POS_ARR_S,(char*)&swap_size_a,sizeof(uint32_t));
+}
+
+void process_body(encode_t* encode, char* params){
+    int size_before_body= encode->bytes->used;
+
+    encode_body(encode, params);
+
+    int long_param = encode->bytes->used - size_before_body;
+    uint32_t swap_size_p= to_little_32(long_param);
+    memcpy(encode->bytes->data+POS_BOD_S,(char*)&swap_size_p,sizeof(uint32_t));
+}
+
 
 int encode_line(encode_t * encode, char* data){
     uint16_t S = to_little_16(0x73);
     uint16_t O = to_little_16(0x6F);
-    //char *save_ptr = NULL;
     size_t s_firm, s_meth;
-    char dest[SIZE_PARAM];
-    char path[SIZE_PARAM];
-    char inter[SIZE_PARAM];
-    char method[SIZE_PARAM];
+    char dest[SIZE_PARAM],path[SIZE_PARAM],inter[SIZE_PARAM],met[SIZE_PARAM];
     encode_set_static(encode);
-    memset(dest,0, SIZE_PARAM);
-    memset(path,0,SIZE_PARAM);
-    memset(inter,0,SIZE_PARAM);
-    memset(method,0,SIZE_PARAM);
+    initialize(dest,path,inter,met);
     sscanf(data, "%s %s %s" ,dest, path, inter);
     s_meth= strlen(dest)+ strlen(path)+ strlen(inter);
-    sscanf(data + s_meth+3, "%[^(](", method);
+    // +3 por los espacios
+    sscanf(data + s_meth+3, "%[^(](", met);
     encode_arg(encode, dest, &type_prot_des, &S);
     encode_arg(encode, path, &type_prot_path, &O);
     encode_arg(encode, inter, &type_prot_inter, &S);
-    encode_arg(encode, method, &type_prot_meth,&S);
+    encode_arg(encode, met, &type_prot_meth,&S);
     // +3 por los espacios +1 por el parentesis
-    s_firm= s_meth+ strlen(method)+ 4;
+    s_firm= s_meth+ strlen(met)+ 4;
     char* firm = data+ s_firm;
     int par_len= strlen(firm);
     memcpy(firm+par_len, "\0", sizeof(char));
@@ -97,17 +114,9 @@ int encode_line(encode_t * encode, char* data){
     snprintf(params, par_len + SIZE_END , "%s", firm);
     
     encode_params_firm(encode,firm);
-    int long_arr = encode->bytes->used - POS_START_ARR;
-    uint32_t swap_size_a= to_little_32(long_arr);
-    memcpy(encode->bytes->data+POS_ARR_S,(char*)&swap_size_a,sizeof(uint32_t));
+    set_array_len(encode);
 
-    //long body
-    int size_before_body= encode->bytes->used;
-    encode_body(encode, params);
-    int long_param = encode->bytes->used - size_before_body;
-
-    uint32_t swap_size_p= to_little_32(long_param);
-    memcpy(encode->bytes->data+POS_BOD_S,(char*)&swap_size_p,sizeof(uint32_t));
+    process_body(encode,params);
     return 0;  
 }
 
