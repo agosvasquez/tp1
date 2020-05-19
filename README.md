@@ -5,7 +5,10 @@
 * Link al repositorio: https://github.com/agosvasquez/tp1
 
 
-![Imagen salida HM](tp1_diagram.png)
+![Imagen client](tp1_client.png)
+
+
+![Imagen server ](tp1_server.png)
 
 
 La resolución del tp se desarollo con el siguiente enfoque: 
