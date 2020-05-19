@@ -5,12 +5,6 @@
 * Link al repositorio: https://github.com/agosvasquez/tp1
 
 
-![Imagen client](tp1_client.png)
-
-
-![Imagen server ](tp1_server.png)
-
-
 La resolución del tp se desarollo con el siguiente enfoque: 
 
 * Service: este tiene un socket y su responsabilidad es comunicarse con el client, recibir lo que este manda decodificarlo y mandar una respuesta y hacer su output correspondiente. 
@@ -25,4 +19,9 @@ La resolución del tp se desarollo con el siguiente enfoque:
 
 * Socket : El socket se encarga de realizar el envio de datos en un formato a traves de la red hacia otro socket.
 
+
+ ![Imagen client](tp1_client.png)
+  .
+
+ ![Imagen server ](tp1_server.png)
 
